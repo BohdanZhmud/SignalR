@@ -83,15 +83,15 @@ namespace Microsoft.AspNetCore.SignalR
 
         public int? LocalPort => Features.Get<IHttpConnectionFeature>()?.LocalPort;
 
-        public virtual async Task WriteAsync(HubMessage message)
+        public virtual async Task WriteAsync(CachedHubMessage message)
         {
             try
             {
                 await _writeLock.WaitAsync();
 
-                var buffer = ProtocolReaderWriter.WriteMessage(message);
+                //var buffer = ProtocolReaderWriter.WriteMessage(message);
 
-                _connectionContext.Transport.Output.Write(buffer);
+                _connectionContext.Transport.Output.Write(message.GetMessage(ProtocolReaderWriter));
 
                 Interlocked.Exchange(ref _lastSendTimestamp, Stopwatch.GetTimestamp());
 
@@ -213,7 +213,7 @@ namespace Microsoft.AspNetCore.SignalR
 
                 _logger.SentPing();
 
-                _ = WriteAsync(PingMessage.Instance);
+                _ = WriteAsync(new CachedHubMessage(PingMessage.Instance));
 
                 Interlocked.Exchange(ref _lastSendTimestamp, Stopwatch.GetTimestamp());
             }
@@ -235,6 +235,21 @@ namespace Microsoft.AspNetCore.SignalR
                 // we don't end up with an unobserved task
                 connection._abortCompletedTcs.TrySetException(ex);
             }
+        }
+    }
+
+    public class CachedHubMessage
+    {
+        private readonly HubMessage _hubMessage;
+
+        public CachedHubMessage(HubMessage hubMessage)
+        {
+            _hubMessage = hubMessage;
+        }
+
+        public byte[] GetMessage(HubProtocolReaderWriter protocolReaderWriter)
+        {
+            return protocolReaderWriter.WriteMessage(_hubMessage);
         }
     }
 }
