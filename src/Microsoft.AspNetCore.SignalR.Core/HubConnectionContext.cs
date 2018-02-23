@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.SignalR
 
         public int? LocalPort => Features.Get<IHttpConnectionFeature>()?.LocalPort;
 
-        public async Task WriteAsync(CachedHubMessage message)
+        public virtual async Task WriteAsync(HubMessage message)
         {
             try
             {
@@ -213,7 +213,7 @@ namespace Microsoft.AspNetCore.SignalR
 
                 _logger.SentPing();
 
-                _ = WriteAsync(new CachedHubMessage(PingMessage.Instance));
+                _ = WriteAsync(PingMessage.Instance);
 
                 Interlocked.Exchange(ref _lastSendTimestamp, Stopwatch.GetTimestamp());
             }
@@ -238,18 +238,44 @@ namespace Microsoft.AspNetCore.SignalR
         }
     }
 
-    public class CachedHubMessage
-    {
-        private readonly HubMessage _hubMessage;
+    // public class CachedHubMessage
+    // {
+    //     private readonly HubMessage _hubMessage;
+    //     private readonly List<SerializedMessage> _serializedMessages;
 
-        public CachedHubMessage(HubMessage hubMessage)
-        {
-            _hubMessage = hubMessage;
-        }
+    //     public CachedHubMessage(HubMessage hubMessage)
+    //     {
+    //         _hubMessage = hubMessage;
+    //         _serializedMessages = new List<SerializedMessage>(4);
+    //     }
 
-        public byte[] GetMessage(HubProtocolReaderWriter protocolReaderWriter)
-        {
-            return protocolReaderWriter.WriteMessage(_hubMessage);
-        }
-    }
+    //     public byte[] GetMessage(HubProtocolReaderWriter protocolReaderWriter)
+    //     {
+    //         for (var i = 0; i < _serializedMessages.Count; i++)
+    //         {
+    //             if (_serializedMessages[i].DataEncoder == protocolReaderWriter.DataEncoder &&
+    //                 _serializedMessages[i].HubProtocol == protocolReaderWriter.HubProtocol)
+    //             {
+    //                 return _serializedMessages[i].Message;
+    //             }
+    //         }
+
+    //         var bytes = protocolReaderWriter.WriteMessage(_hubMessage);
+    //         _serializedMessages.Add(new SerializedMessage
+    //         {
+    //             Message = bytes,
+    //             DataEncoder = protocolReaderWriter.DataEncoder,
+    //             HubProtocol = protocolReaderWriter.HubProtocol
+    //         });
+
+    //         return bytes;
+    //     }
+
+    //     private struct SerializedMessage
+    //     {
+    //         public IDataEncoder DataEncoder;
+    //         public IHubProtocol HubProtocol;
+    //         public byte[] Message;
+    //     }
+    // }
 }

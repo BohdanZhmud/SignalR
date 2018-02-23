@@ -272,7 +272,7 @@ namespace Microsoft.AspNetCore.SignalR
 
         private Task SendMessageAsync(HubConnectionContext connection, HubMessage hubMessage)
         {
-            return connection.WriteAsync(new CachedHubMessage(hubMessage));
+            return connection.WriteAsync(hubMessage);
         }
 
         private async Task Invoke(HubMethodDescriptor descriptor, HubConnectionContext connection,
