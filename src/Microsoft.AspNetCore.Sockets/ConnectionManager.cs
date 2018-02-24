@@ -62,9 +62,10 @@ namespace Microsoft.AspNetCore.Sockets
 
             _logger.CreatedNewConnection(id);
             var connectionTimer = SocketEventSource.Log.ConnectionStart(id);
-
+            // TODO: Remove when we get new pipeline packages
+            var opt = new PipeOptions(readerScheduler: PipeScheduler.ThreadPool);
             var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
-            
+
             var connection = new DefaultConnectionContext(id, pair.Application, pair.Transport);
             connection.ConnectionTimer = connectionTimer;
 
